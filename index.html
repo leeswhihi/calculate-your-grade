@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멋쟁이가 만든 성적 계산기!</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        :root {
+            --primary-color: #5D9CEC;
+            --bg-color: #F0F2F5;
+            --card-bg: #FFFFFF;
+            --text-color: #434A54;
+            --border-color: #E6E9ED;
+            --input-bg: #F8F9FB;
+            --disabled-bg: #EDF0F3;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 20px;
+            margin: 0;
+        }
+
+        h1 { color: #2c3e50; margin-bottom: 8px; font-weight: 800; letter-spacing: -0.5px; }
+        p.description { color: #7f8c8d; margin-bottom: 40px; font-size: 1rem; }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        table { border-collapse: collapse; width: 100%; }
+
+        th, td {
+            height: 50px;
+            padding: 0 12px;
+            text-align: center;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: #a0a0a0;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        input[type="number"] {
+            width: 60px;
+            height: 38px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background-color: var(--input-bg);
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            transition: all 0.2s ease;
+            box-shadow: inset var(--shadow-sm);
+            -moz-appearance: textfield;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        input[type="number"]:focus {
+            background-color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(93, 156, 236, 0.15), var(--shadow-sm);
+            outline: none;
+        }
+
+        input.disabled-input {
+            background-color: var(--disabled-bg);
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(200,200,200,0.05) 5px, rgba(200,200,200,0.05) 10px);
+            cursor: not-allowed;
+            border: 1px solid #dcdcdc;
+            color: rgba(0, 0, 0, 0.15);
+            text-shadow: none;
+        }
+
+        .total-cell { font-weight: 800; color: var(--primary-color); font-size: 1.1rem; }
+
+        .grade-badge {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .grade-A { background: linear-gradient(135deg, #48CFAD, #37BC9B); }
+        .grade-B { background: linear-gradient(135deg, #4FC1E9, #3BAFDA); }
+        .grade-C { background: linear-gradient(135deg, #FFCE54, #F6BB42); color: #fff; }
+        .grade-D { background: linear-gradient(135deg, #FC6E51, #E9573F); }
+        .grade-E { background: linear-gradient(135deg, #ED5565, #DA4453); }
+
+        tfoot tr td { background-color: #fcfcfc; font-weight: bold; color: #555; }
+        .footer-label { color: #888; font-size: 0.85rem; }
+        .footer-sum { color: #333; font-size: 1rem; }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; align-items: stretch; }
+            .card { overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📊 내신 성적 계산기</h1>
+    <p class="description">빈칸에 점수를 입력하면 자동으로 성적이 계산됩니다.</p>
+
+    <div class="container">
+        <div class="card">
+            <table>
+                <thead><tr><th>기준</th><th>등급</th></tr></thead>
+                <tbody>
+                    <tr><td>89.45~</td><td><span class="grade-badge grade-A">A</span></td></tr>
+                    <tr><td>79.45~</td><td><span class="grade-badge grade-B">B</span></td></tr>
+                    <tr><td>69.45~</td><td><span class="grade-badge grade-C">C</span></td></tr>
+                    <tr><td>59.45~</td><td><span class="grade-badge grade-D">D</span></td></tr>
+                    <tr><td>0~</td><td><span class="grade-badge grade-E">E</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" style="flex: 1;">
+            <table id="mainTable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">과목</th>
+                        <th>수행1</th>
+                        <th>수행2</th>
+                        <th>중간</th>
+                        <th>기말</th>
+                        <th>총점</th>
+                        <th>등급</th>
+                    </tr>
+                </thead>
+                <tbody id="subjectRows"></tbody>
+                <tfoot>
+                    <tr>
+                        <td class="footer-label">평균</td>
+                        <td id="avg-p1">0.0</td><td id="avg-p2">0.0</td>
+                        <td id="avg-mid">0.0</td><td id="avg-f">0.0</td>
+                        <td>-</td><td>-</td>
+                    </tr>
+                    <tr style="border-top: 2px solid #eee;">
+                        <td class="footer-label">합계</td>
+                        <td id="sum-p1" class="footer-sum">0</td>
+                        <td id="sum-p2" class="footer-sum">0</td>
+                        <td id="sum-mid" class="footer-sum">0</td>
+                        <td id="sum-f" class="footer-sum">0</td>
+                        <td>-</td><td>-</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const subjects = [
+            { name: "국어", noMid: false }, { name: "수학", noMid: false },
+            { name: "영어", noMid: false }, { name: "과학", noMid: false },
+            { name: "사회", noMid: true }, { name: "정보", noMid: true }, { name: "도덕", noMid: true }
+        ];
+
+        const tbody = document.getElementById('subjectRows');
+
+        subjects.forEach((sub, idx) => {
+            const tr = document.createElement('tr');
+            const midHtml = sub.noMid 
+                ? `<input type="number" class="score-input mid disabled-input" disabled value="0">` 
+                : `<input type="number" class="score-input mid" placeholder="0" step="any">`;
+
+            tr.innerHTML = `
+                <td style="font-weight:700; color:#333;">${sub.name}</td>
+                <td><input type="number" class="score-input p1" placeholder="0" step="any"></td>
+                <td><input type="number" class="score-input p2" placeholder="0" step="any"></td>
+                <td>${midHtml}</td>
+                <td><input type="number" class="score-input f" placeholder="0" step="any"></td>
+                <td class="total-cell">0</td>
+                <td><span class="grade-badge grade-E">E</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // 숫자를 0~100 사이로 보정하는 헬퍼 함수
+        function clamp(num) {
+            if (isNaN(num)) return 0;
+            return Math.max(0, Math.min(100, num));
+        }
+
+        function calculate() {
+            const rows = document.querySelectorAll('#subjectRows tr');
+            let sums = { p1: 0, p2: 0, mid: 0, f: 0 };
+            let midCount = 0;
+
+            rows.forEach((row, i) => {
+                const inputs = {
+                    p1: row.querySelector('.p1'),
+                    p2: row.querySelector('.p2'),
+                    mid: row.querySelector('.mid'),
+                    f: row.querySelector('.f')
+                };
+
+                // 원본 입력값을 가져와서 보정 (실제 계산에 쓰일 값)
+                const v = {
+                    p1: clamp(parseFloat(inputs.p1.value)),
+                    p2: clamp(parseFloat(inputs.p2.value)),
+                    mid: clamp(parseFloat(inputs.mid.value)),
+                    f: clamp(parseFloat(inputs.f.value))
+                };
+
+                // 화면 입력 필드 값도 보정된 값으로 업데이트 (0100 -> 100 등)
+                Object.keys(inputs).forEach(key => {
+                    const input = inputs[key];
+                    if (input.value !== "" && !input.disabled) {
+                        // 입력 도중에 소수점을 찍는 중일 수 있으므로 blur 시점이 아니면 문자열 보정만
+                        if(input.value.length > 1 && input.value.startsWith('0') && !input.value.startsWith('0.')) {
+                            input.value = Number(input.value);
+                        }
+                        // 범위를 벗어난 경우에만 강제 수정
+                        if (parseFloat(input.value) > 100) input.value = 100;
+                        if (parseFloat(input.value) < 0) input.value = 0;
+                    }
+                });
+
+                sums.p1 += v.p1; sums.p2 += v.p2; sums.f += v.f;
+                if (!inputs.mid.disabled) { sums.mid += v.mid; midCount++; }
+
+                // 가중치 계산 (보정된 v값 사용)
+                let total = subjects[i].noMid 
+                    ? (v.p1 * 0.3) + (v.p2 * 0.3) + (v.f * 0.4)
+                    : (v.p1 * 0.2) + (v.p2 * 0.2) + (v.mid * 0.3) + (v.f * 0.3);
+
+                const score = parseFloat(total.toFixed(2));
+                let g = 'E', c = 'grade-E';
+                if (score >= 89.45) { g='A'; c='grade-A'; }
+                else if (score >= 79.45) { g='B'; c='grade-B'; }
+                else if (score >= 69.45) { g='C'; c='grade-C'; }
+                else if (score >= 59.45) { g='D'; c='grade-D'; }
+
+                row.querySelector('.total-cell').textContent = score;
+                const badge = row.querySelector('.grade-badge');
+                badge.textContent = g; badge.className = 'grade-badge ' + c;
+            });
+
+            document.getElementById('avg-p1').textContent = (sums.p1 / subjects.length).toFixed(1);
+            document.getElementById('avg-p2').textContent = (sums.p2 / subjects.length).toFixed(1);
+            document.getElementById('avg-mid').textContent = (sums.mid / (midCount || 1)).toFixed(1);
+            document.getElementById('avg-f').textContent = (sums.f / subjects.length).toFixed(1);
+
+            document.getElementById('sum-p1').textContent = sums.p1.toFixed(1).replace(/\.0$/, '');
+            document.getElementById('sum-p2').textContent = sums.p2.toFixed(1).replace(/\.0$/, '');
+            document.getElementById('sum-mid').textContent = sums.mid.toFixed(1).replace(/\.0$/, '');
+            document.getElementById('sum-f').textContent = sums.f.toFixed(1).replace(/\.0$/, '');
+        }
+
+        document.querySelectorAll('.score-input').forEach(input => {
+            input.addEventListener('input', calculate);
+            input.addEventListener('focus', function() { this.select(); });
+            input.addEventListener('keydown', function(e) { if(e.key === '-') e.preventDefault(); });
+            input.addEventListener('blur', function() { 
+                if(this.value !== "") {
+                    this.value = clamp(parseFloat(this.value));
+                    calculate(); // 최종 보정값으로 다시 계산
+                }
+            });
+        });
+    </script>
+</body>
+</html>
